@@ -1,0 +1,54 @@
+{{/* Key dates for the move to the new OpenGWAS. Usage: {{< og-timeline >}} */}}
+<style>
+  .og-tl { --og-ink: #1e293b; --og-muted: #475569; --og-line: #cbd5e1; --og-card: #f8fafc;
+           --og-a: #0f766e; --og-b: #4338ca; --og-c: #b45309; --og-d: #64748b;
+           margin: 2rem 0; padding: 0; list-style: none; display: grid; gap: 1rem;
+           grid-template-columns: repeat(4, minmax(0, 1fr)); position: relative; }
+  html.dark .og-tl { --og-ink: #f1f5f9; --og-muted: #cbd5e1; --og-line: #475569; --og-card: #334155;
+                     --og-a: #5eead4; --og-b: #a5b4fc; --og-c: #fcd34d; --og-d: #94a3b8; }
+  .og-tl::before { content: ""; position: absolute; left: 0; right: 0; top: 0.55rem;
+                   height: 2px; background: var(--og-line); }
+  .og-tl li { position: relative; margin: 0; padding: 1.75rem 0 0 0; }
+  .og-tl li::before { content: ""; position: absolute; top: 0; left: 0; width: 1.1rem; height: 1.1rem;
+                      border-radius: 999px; background: var(--og-dot); box-shadow: 0 0 0 4px var(--og-card); }
+  .og-tl .og-card { background: var(--og-card); border-radius: 0.5rem; padding: 0.9rem 1rem;
+                    border-top: 3px solid var(--og-dot); height: 100%; box-sizing: border-box; }
+  .og-tl .og-when { margin: 0; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.02em;
+                    color: var(--og-dot); text-transform: uppercase; }
+  .og-tl .og-what { margin: 0.25rem 0 0.4rem; font-size: 1.05rem; font-weight: 600; line-height: 1.3;
+                    color: var(--og-ink); }
+  .og-tl .og-detail { margin: 0; font-size: 0.9rem; line-height: 1.45; color: var(--og-muted); }
+  .og-tl .og-1 { --og-dot: var(--og-a); }
+  .og-tl .og-2 { --og-dot: var(--og-b); }
+  .og-tl .og-3 { --og-dot: var(--og-c); }
+  .og-tl .og-4 { --og-dot: var(--og-d); }
+  .og-tl .og-4 .og-card { border-top-style: dashed; }
+  @media (max-width: 760px) {
+    .og-tl { grid-template-columns: 1fr; gap: 0.75rem; padding-left: 1.75rem; }
+    .og-tl::before { left: 0.5rem; right: auto; top: 0.5rem; bottom: 0.5rem; width: 2px; height: auto; }
+    .og-tl li { padding: 0; }
+    .og-tl li::before { top: 1rem; left: -1.75rem; }
+  }
+</style>
+<ol class="og-tl not-prose" aria-label="Key dates">
+  <li class="og-1"><div class="og-card">
+    <p class="og-when">Mon 14 December 2026</p>
+    <p class="og-what">Alpha testing opens</p>
+    <p class="og-detail">Anyone can try the new system, including through TwoSampleMR. The current system stays the default.</p>
+  </div></li>
+  <li class="og-2"><div class="og-card">
+    <p class="og-when">Mon 25 January 2027</p>
+    <p class="og-what">New system becomes the default</p>
+    <p class="og-detail">A new TwoSampleMR release uses it out of the box. The current system is still available if you ask for it.</p>
+  </div></li>
+  <li class="og-3"><div class="og-card">
+    <p class="og-when">Wed 31 March 2027</p>
+    <p class="og-what">Current system retired</p>
+    <p class="og-detail">The current API is switched off for good. GWAS-VCF files stay downloadable for a limited time.</p>
+  </div></li>
+  <li class="og-4"><div class="og-card">
+    <p class="og-when">After that</p>
+    <p class="og-what">New data, more hosts</p>
+    <p class="og-detail">Regular data releases, the remaining metadata work, whole-Store downloads and partner sites.</p>
+  </div></li>
+</ol>
