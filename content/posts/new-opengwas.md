@@ -2,14 +2,12 @@
 author = "OpenGWAS"
 title = "A new OpenGWAS: what is changing, and when"
 date = "2026-11-27"
-description = "We are replacing the system behind OpenGWAS. It fixes a long list of problems, but it brings breaking changes: positions, variant IDs, LD, dataset IDs and the R package all change. Testing opens on 14 December 2026, the new system becomes the default on 25 January 2027, and the current system is retired on 31 March 2027."
+description = "We are rebuilding OpenGWAS. The new system holds more data, answers queries faster, is built on hg38, and is much more efficient to run. But it is not a drop-in replacement. Positions, variant IDs, LD reference data, dataset IDs and the R and Python packages all change, so some of your code will need updating, and your results will not always match what you got before."
 tags = [
     "announcement",
     "roadmap",
 ]
 +++
-
-We are rebuilding OpenGWAS. The new system holds more data, answers queries faster, is built on hg38, and costs far less to run. But it is not a drop-in replacement. Positions, variant IDs, LD reference data, dataset IDs and the R package all change, so some of your code will need updating, and your results will not always match what you got before.
 
 This post sets out what will change for you first, then why we are doing it and what it makes possible. The dates:
 
@@ -21,7 +19,7 @@ This post sets out what will change for you first, then why we are doing it and 
 
 ## What will change for existing scripts
 
-If you use OpenGWAS through TwoSampleMR or ieugwasr, these are likely **breaking changes**. Some will stop old code from running, which is easy to spot. Others will change your results without any error, and those need more care. In general, it must not be assumed that identical results will be obtained when running old scripts on the new system.
+If you use OpenGWAS through TwoSampleMR, ieugwasr or ieugwaspy, or a third-party package that uses the OpenGWAS API, these are likely **breaking changes**. Some will stop old code from running, which is easy to spot. Others will change your results without any error, and those need more care. In general, it must not be assumed that identical results will be obtained when running old scripts on the new system.
 
 ### Variants and positions
 
@@ -47,7 +45,8 @@ If you use OpenGWAS through TwoSampleMR or ieugwasr, these are likely **breaking
 
 ### Software
 
-- **`opengwasr` replaces `ieugwasr`:** The new R package works the same way on data held by the API and on Stores downloaded to your own computer, and its syntax has changed to allow for that. Its [migration guide](https://blog.opengwas.io/opengwasr/articles/migrating-from-ieugwasr.html) lists each ieugwasr function and its replacement. TwoSampleMR uses `opengwasr` under the hood from the new release.
+- **`opengwasr` and `opengwaspy` replace `ieugwasr` and `ieugwaspy`:** The new R and Python packages work the same way on data held by the API and on Stores downloaded to your own computer, and their syntax has changed to allow for that. The `opengwasr` [migration guide](https://blog.opengwas.io/opengwasr/articles/migrating-from-ieugwasr.html) lists each ieugwasr function and its replacement, and `opengwaspy` has a layer that works like ieugwaspy to ease the move. TwoSampleMR uses `opengwasr` under the hood from the new release. `opengwaspy` will also come with an MCP server, so AI assistants can query OpenGWAS on your behalf.
+- **The API has changed:** If you call the OpenGWAS API directly, or maintain a package that does, its endpoints and what they return are different. The new API describes itself on its `/docs` and `/redoc` pages, for anyone building their own tools (we will add the address here before 14 December).
 - **You need a new token:** Sign in with the same account and generate a new token for the new system.
 - **Column names may differ:** The data frames returned by functions such as `extract_instruments()` and `extract_outcome_data()` may not have exactly the same columns as before.
 - **Some old options may go:** Some ieugwasr-style arguments, such as `pop`, may be dropped or behave differently.
@@ -56,7 +55,7 @@ If you use OpenGWAS through TwoSampleMR or ieugwasr, these are likely **breaking
 
 ### Bridging the gap
 
-Where we can, we will close these gaps. Tell us during the alpha which differences cause you problems, and we will try to bridge them in TwoSampleMR and `opengwasr`. But many of the old defaults existed because of limits in the old system: European LD for everyone, proxies instead of imputation, effect sizes in whatever units each study happened to use. Moving off them is likely to improve your analyses, so before forcing the old behaviour back, check whether the new one gives a better answer.
+Where we can, we will close these gaps. Tell us during the alpha which differences cause you problems, and we will try to bridge them in TwoSampleMR, `opengwasr` and `opengwaspy`. But many of the old defaults existed because of limits in the old system: European LD for everyone, proxies instead of imputation, effect sizes in whatever units each study happened to use. Moving off them is likely to improve your analyses, so before forcing the old behaviour back, check whether the new one gives a better answer.
 
 ## Why we are rebuilding
 
@@ -87,15 +86,15 @@ We start from published summary statistics: the GWAS Catalog, UK Biobank, FinnGe
 
 What it produces are **GWAS Stores**. A GWAS Store holds one collection of studies (all of FinnGen release 13, for example), harmonised the same way and published as a numbered release that never changes once it is out. Alongside them are LD Stores, which hold linkage disequilibrium for each reference panel and ancestry.
 
-You reach the data in three ways. The OpenGWAS API is what TwoSampleMR, `opengwasr` (R) and `opengwaspy` (Python) talk to. [opengwas.io](https://opengwas.io) is the website for browsing and searching. And you will be able to download whole Stores and query them on your own computer with the same functions.
+You can reach the data in two ways. Remotely, through the OpenGWAS API: TwoSampleMR, `opengwasr` (R) and `opengwaspy` (Python) all use it, and you can call it from your own code. Or locally: download whole Stores and query them on your own computer with `opengwasr`, `opengwaspy` or `ogquery`, using the same functions you would use against the API. [opengwas.io](https://opengwas.io) is the website for browsing and searching.
 
 All of the software is open source under the GPL-3.0 licence.
 
 ## What the new system makes possible
 
-### Cost, and room to grow
+### Efficiency, and room to grow
 
-The new storage format is compact. For genome-wide studies, a GWAS Store is between seven and fifteen times smaller than the files it was built from, and each dataset is kept once, in one format, instead of several times over. That is what brings the cost of running OpenGWAS down to something we can sustain, and it leaves room for the new data coming in.
+The new storage format is compact. For genome-wide studies, a GWAS Store is between seven and fifteen times smaller than the files it was built from, and each dataset is kept once, in one format, instead of several times over. That makes OpenGWAS much more efficient to run: the same funding goes further, and there is room for the new data coming in.
 
 OpenGWAS remains free for non-commercial research. We will also offer a licence for commercial use, where each dataset's own terms allow it. That income goes towards keeping the service running.
 
@@ -128,9 +127,13 @@ Fetching the LD needed to clump a quarter of a million hits takes one to two sec
 
 The HapMap3 variants used by LD score regression are indexed in every densely laid-out Store, so extracting them for an analysis takes about half a second. You no longer have to download a whole file and filter it.
 
+### Sample overlap, pre-calculated
+
+When two GWAS share participants, their results are correlated even at variants that affect neither trait, and MR and other cross-trait methods need to allow for that. This correlation, rho, reflects both how much the samples overlap and how correlated the traits are. For every pair of analyses in a densely laid-out Store, we pre-calculate rho from variants with no detectable association in either study, so you can look it up instead of estimating it yourself.
+
 ### Analyses on your own computer
 
-Whole GWAS Stores and LD Stores will be downloadable, one file per Store, each with a record of where it came from and the licences of its sources. Unpack one or more into a folder and point `opengwasr` (R) or `ogquery` (Python) at it, and the functions you use against the API run on your own machine instead. You can run a PheWAS across a whole Store, or extract genome-wide data for thousands of traits, without an allowance or a network connection.
+Whole GWAS Stores and LD Stores will be downloadable, one file per Store, each with a record of where it came from and the licences of its sources. Unpack one or more into a folder and point `opengwasr` (R), `opengwaspy` (Python) or `ogquery` (Python) at it, and the functions you use against the API run on your own machine instead. You can run a PheWAS across a whole Store, or extract genome-wide data for thousands of traits, without an allowance or a network connection.
 
 ### Effect sizes you can compare
 
@@ -155,19 +158,21 @@ Some of this work is not finished but is part of the roadmap:
 From 14 December 2026, anyone can try the new system.
 
 1. Sign in with your existing OpenGWAS account and generate a new token for the new system (we will add the link here before 14 December).
-2. Install the alpha release of TwoSampleMR:
+2. Install the alpha release of TwoSampleMR in R:
 
    ```r
    remotes::install_github("MRCIEU/TwoSampleMR@0.8.0")
    ```
 
-3. Run your usual analyses and tell us what breaks, what is slow and what looks wrong on [TwoSampleMR's GitHub issues](https://github.com/MRCIEU/TwoSampleMR/issues).
+   In Python, install the alpha of `opengwaspy` (we will add instructions here before 14 December).
+
+3. Run your usual analyses and tell us what breaks, what is slow and what looks wrong on [TwoSampleMR's GitHub issues](https://github.com/MRCIEU/TwoSampleMR/issues), or [opengwaspy's](https://github.com/opengwas/opengwaspy/issues) for Python.
 
 The current system stays the default until 25 January, so the alpha will not change anything you do not ask it to. Things may change during testing. The most useful thing you can do is run an existing pipeline on both systems and compare the results: it shows you the differences that matter to your work before the switch, and tells us which gaps to bridge.
 
 ## After 31 March 2027
 
-On 31 March the current OpenGWAS API is switched off for good. ieugwasr and older versions of TwoSampleMR call that API, so from then on they will stop returning data. If you have scripts or pipelines that use them, please move them over before then. The new TwoSampleMR release will be out on 25 January, which leaves two months to switch.
+On 31 March the current OpenGWAS API is switched off for good. ieugwasr, ieugwaspy and older versions of TwoSampleMR call that API, so from then on they will stop returning data. If you have scripts or pipelines that use them, please move them to the new TwoSampleMR, `opengwasr` or `opengwaspy` before then. The new TwoSampleMR release will be out on 25 January, which leaves two months to switch.
 
 GWAS-VCF files will stay downloadable for a limited time after the shutdown. We will give separate notice before they are removed.
 

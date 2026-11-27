@@ -9,6 +9,7 @@
   .og-sys .og-stage { display: flex; flex-direction: column; gap: 0.5rem; }
   .og-sys .og-label { margin: 0 0 0.1rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
                       letter-spacing: 0.04em; color: var(--og-muted); }
+  .og-sys .og-sub { margin-top: 0.6rem; }
   .og-sys .og-box { background: var(--og-card); border: 1px solid var(--og-edge); border-radius: 0.5rem;
                     padding: 0.6rem 0.75rem; flex: 1 1 auto; }
   .og-sys .og-box.og-key { border-color: var(--og-accent); border-width: 2px; }
@@ -23,7 +24,7 @@
     .og-sys .og-arrow svg { transform: rotate(90deg); }
   }
 </style>
-<div class="og-sys not-prose" role="figure" aria-label="How the new OpenGWAS fits together: sources are built by opengwasdb into GWAS Stores and LD Stores, which you reach through the OpenGWAS API, the website, or by downloading them.">
+<div class="og-sys not-prose" role="figure" aria-label="How the new OpenGWAS fits together: sources are built by opengwasdb into GWAS Stores and LD Stores, which you reach remotely through the OpenGWAS API and the website, or locally by downloading them.">
   <div class="og-stage">
     <p class="og-label">Sources</p>
     <div class="og-box"><p class="og-name">Published summary statistics</p>
@@ -47,12 +48,13 @@
   </div>
   <div class="og-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
   <div class="og-stage">
-    <p class="og-label">Ways in</p>
+    <p class="og-label">Remote</p>
     <div class="og-box"><p class="og-name">OpenGWAS API</p>
-      <p class="og-note">Sign in and query from <code>TwoSampleMR</code>, <code>opengwasr</code> (R) or <code>opengwaspy</code> (Python)</p></div>
+      <p class="og-note">Sign in and query over the internet from <code>TwoSampleMR</code>, <code>opengwasr</code> (R), <code>opengwaspy</code> (Python) or your own code</p></div>
     <div class="og-box"><p class="og-name">opengwas.io</p>
       <p class="og-note">Browse and search every Store</p></div>
+    <p class="og-label og-sub">Local</p>
     <div class="og-box"><p class="og-name">Your own computer</p>
-      <p class="og-note">Download a whole Store and query it locally with <code>opengwasr</code> (R) or <code>ogquery</code> (Python). For example, all ~2,500 full UK Biobank GWAS take about 60 GB</p></div>
+      <p class="og-note">Download a whole Store and query it with <code>opengwasr</code> (R), <code>opengwaspy</code> (Python) or <code>ogquery</code> (Python). For example, all ~2,500 full UK Biobank GWAS take about 60 GB</p></div>
   </div>
 </div>
