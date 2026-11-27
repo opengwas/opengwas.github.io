@@ -46,7 +46,7 @@ If you use OpenGWAS through TwoSampleMR, ieugwasr or ieugwaspy, or a third-party
 ### Software
 
 - **`opengwasr` and `opengwaspy` replace `ieugwasr` and `ieugwaspy`:** The new R and Python packages work the same way on data held by the API and on Stores downloaded to your own computer, and their syntax has changed to allow for that. The `opengwasr` [migration guide](https://blog.opengwas.io/opengwasr/articles/migrating-from-ieugwasr.html) lists each ieugwasr function and its replacement, and `opengwaspy` has a layer that works like ieugwaspy to ease the move. TwoSampleMR uses `opengwasr` under the hood from the new release. `opengwaspy` will also come with an MCP server, so AI assistants can query OpenGWAS on your behalf.
-- **The API has changed:** If you call the OpenGWAS API directly, or maintain a package that does, its endpoints and what they return are different. The new API describes itself on its `/docs` and `/redoc` pages, for anyone building their own tools.
+- **The API has changed:** If you call the OpenGWAS API directly, or maintain a package that does, its endpoints and what they return are different. The new API describes itself on its `/docs` and `/redoc` pages, for anyone building their own tools (we will add the address here before 14 December).
 - **You need a new token:** Sign in with the same account and generate a new token for the new system.
 - **Column names may differ:** The data frames returned by functions such as `extract_instruments()` and `extract_outcome_data()` may not have exactly the same columns as before.
 - **Some old options may go:** Some ieugwasr-style arguments, such as `pop`, may be dropped or behave differently.
