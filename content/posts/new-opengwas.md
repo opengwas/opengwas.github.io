@@ -2,16 +2,16 @@
 author = "OpenGWAS"
 title = "A new OpenGWAS: what is changing, and when"
 date = "2026-11-27"
-description = "We are replacing the system behind OpenGWAS. The new one opens for testing on 14 December 2026, becomes the default on 25 January 2027, and the current system is retired on 31 March 2027. This post explains why, what is different, and what you need to do."
+description = "We are replacing the system behind OpenGWAS. It fixes a long list of problems, but it brings breaking changes: positions, variant IDs, LD, dataset IDs and the R package all change. Testing opens on 14 December 2026, the new system becomes the default on 25 January 2027, and the current system is retired on 31 March 2027."
 tags = [
     "announcement",
     "roadmap",
 ]
 +++
 
-We are replacing the system that runs OpenGWAS. The new one holds more data, answers queries faster, is built on hg38, and costs far less to run. It opens for testing in two weeks, and the current system will be switched off at the end of March.
+We are rebuilding OpenGWAS. The new system holds more data, answers queries faster, is built on hg38, and costs far less to run. But it is not a drop-in replacement. Positions, variant IDs, LD reference data, dataset IDs and the R package all change, so some of your code will need updating, and your results will not always match what you got before.
 
-If you use OpenGWAS through TwoSampleMR or ieugwasr, here is what that means for you:
+This post sets out what will change for you first, then why we are doing it and what it makes possible. The dates:
 
 - From **14 December 2026** you can try the new system. Nothing changes unless you choose to.
 - From 25 January 2027 a new TwoSampleMR release uses the new system by default.
@@ -19,7 +19,44 @@ If you use OpenGWAS through TwoSampleMR or ieugwasr, here is what that means for
 
 {{< og-timeline >}}
 
-Below we explain why we are doing this, how the new system fits together, what has changed for each problem people have raised with us, what is unfinished, and how you can help.
+## What will change for you
+
+If you use OpenGWAS through TwoSampleMR or ieugwasr, these are the changes you will notice. Some will stop old code from running, which is easy to spot. Others will change your results without any error, and those need more care.
+
+### Variants and positions
+
+- **Variants are identified by ID, not position:** Every variant now has one ID, written `chr:pos:A1:A2`, and every effect size is given against `A1`. For SNPs, `A1` is the alphabetically first allele. Two datasets that share a variant share its ID without needing an external reference, and their effects already point the same way. You can still look variants up by rsID.
+- **All positions change to hg38:** Everything is on GRCh38 (hg38). Studies reported on hg19 are lifted over when they are built, so any position you have saved from the current system will be different. Positions you query are exact, so there is no search radius to set.
+- **Some variants drop out and others appear:** Every dataset goes through quality control and liftover. Variants that fail either are removed, and variants a study did not report can now be imputed (see below). The set of variants available for a given study will not be the same as before.
+- **One rsID can return several rows:** Where an rsID matches more than one variant, you get all of them back. Code that assumes one row per SNP may count some SNPs twice.
+
+### LD, proxies and clumping
+
+- **LD estimates will differ:** The LD reference panels are much larger than before, and LD is estimated after adjusting for genetic principal components. Clumped results will differ, and so will any pre-clumped top hits.
+- **Clumping defaults have changed:** The old default of r² = 0.001 within 10 Mb is refused. The new default is r² of around 0.03 within 10 Mb, so the number of instruments you get will change.
+- **Clumping uses the study's own ancestry:** LD is taken from the ancestry assigned to each study, with no fallback to European LD. A study whose ancestry cannot be assigned confidently is marked unassigned.
+- **Proxies are replaced by imputation:** Before, when an instrument was missing from your outcome GWAS, TwoSampleMR looked for a proxy SNP in LD with it while you waited. Now the genome-wide summary statistics for each study are imputed against a reference panel matched to its ancestry when the Store is built, so variants the study did not report have an estimated association. Imputed results are labelled, so you can keep them or leave them out, and your results will include a new column saying which is which. In one of our tests, all 100 BMI instruments were found in a coronary artery disease GWAS, 7 of them imputed. The accuracy of summary imputation is much better than using LD proxies. You can still ask for LD proxies if you want them.
+
+### The data
+
+- **Dataset IDs change:** Each analysis now has an ID made of its Store and the analysis, such as `OGS-00009:ukb-b-19953`. Old IDs are mapped to their new equivalents wherever possible, but not all of them will resolve. Check any script that hard-codes dataset IDs.
+- **Some datasets are replaced or reorganised:** Where a source has published a newer release, we carry the new one and do not port the old one across. FinnGen moves to release 13, for example, and requests for the older FinnGen IDs point to the newer release with a warning. Some studies that used to be held as complete genome-wide results now sit in ragged Stores, which keep a smaller set of associations for each analysis, so some variants you could look up before will not be there.
+- **Effect sizes are rescaled:** Every effect size now states its scale: per standard deviation for continuous traits, and log odds or log hazard ratio for binary and time-to-event outcomes. Continuous effects reported in natural units are converted to per-SD. Your code will still run, but MR estimates involving those traits will change size and units. `opengwasr` can convert back to the original units if you need them.
+- **Metadata looks different:** Trait names, sample sizes, ancestry and licences come from the new catalogue. The ancestry shown is the one we assign from the data, which can differ from what the study reported. If you filter the list of datasets by these fields, you may select different studies.
+- **GWAS-VCF files are no longer supported:** The new system does not use GWAS-VCF. Data is held in GWAS Stores, which you query through the API or, soon, download whole.
+
+### Software
+
+- **`opengwasr` replaces `ieugwasr`:** The new R package works the same way on data held by the API and on Stores downloaded to your own computer, and its syntax has changed to allow for that. Its [migration guide](https://blog.opengwas.io/opengwasr/articles/migrating-from-ieugwasr.html) lists each ieugwasr function and its replacement. TwoSampleMR uses `opengwasr` under the hood from the new release.
+- **You need a new token:** Sign in with the same account and generate a new token for the new system.
+- **Column names may differ:** The data frames returned by functions such as `extract_instruments()` and `extract_outcome_data()` may not have exactly the same columns as before.
+- **Some old options may go:** Some ieugwasr-style arguments, such as `pop`, may be dropped or behave differently.
+- **Allowances may change:** The allowance and the cost of each query on the new API may not match the current ones.
+- **LD score regression comes later:** TwoSampleMR's LD score functions have not moved across yet.
+
+### Bridging the gap
+
+Where we can, we will close these gaps. Tell us during the alpha which differences cause you problems, and we will try to bridge them in TwoSampleMR and `opengwasr`. But many of the old defaults existed because of limits in the old system: European LD for everyone, proxies instead of imputation, effect sizes in whatever units each study happened to use. Moving off them is likely to improve your analyses, so before forcing the old behaviour back, check whether the new one gives a better answer.
 
 ## Why we are rebuilding
 
@@ -36,7 +73,7 @@ Underneath the cost were problems you will have run into yourselves:
 - Datasets with thousands of molecular traits, such as eQTL and pQTL studies, have no good home.
 - Some of the metadata cannot be trusted: effect sizes come on mixed scales, the reported ancestry is sometimes wrong, and trait ontology terms and licences are often missing.
 
-We decided to fix these together rather than patch them one at a time.
+We decided to fix these together rather than patch them one at a time, and that is why so much changes at once.
 
 ## How the new system fits together
 
@@ -48,13 +85,13 @@ We start from published summary statistics: the GWAS Catalog, UK Biobank, FinnGe
 
 `opengwasdb` is the open-source engine that turns those files into something you can query. It lifts every study to hg38, lines up alleles, fills in variants a study did not report, works out each study's ancestry from its allele frequencies, records the scale of every effect size, and runs checks before anything is published.
 
-What it produces are **GWAS Stores**. A GWAS Store holds one collection of studies (all of FinnGen release 13, for example), harmonised the same way and published as a numbered release that never changes once it is out. Each analysis in it has an ID made of the Store and the analysis, such as `OGS-00009:ukb-b-19953`. Alongside them are LD Stores, which hold linkage disequilibrium for each reference panel and ancestry.
+What it produces are **GWAS Stores**. A GWAS Store holds one collection of studies (all of FinnGen release 13, for example), harmonised the same way and published as a numbered release that never changes once it is out. Alongside them are LD Stores, which hold linkage disequilibrium for each reference panel and ancestry.
 
 You reach the data in three ways. The OpenGWAS API is what TwoSampleMR, `opengwasr` (R) and `opengwaspy` (Python) talk to. [opengwas.io](https://opengwas.io) is the website for browsing and searching. And you will be able to download whole Stores and query them on your own computer with the same functions.
 
 All of the software is open source under the GPL-3.0 licence.
 
-## What has changed
+## What the new system makes possible
 
 ### Cost, and room to grow
 
@@ -74,20 +111,6 @@ Each source now has a repeatable pipeline. When the GWAS Catalog or FinnGen publ
 
 A GWAS Store can be laid out in two ways, or a mix of both. In a dense Store, every analysis covers the same variants, which suits a biobank run of thousands of traits. In a ragged Store, each analysis keeps only its own associations, which suits QTL studies where each of thousands of genes has a different set of nearby variants. All 19,250 gene-expression analyses from eQTLGen fit in 2.6 GB, and looking up the variants near one gene takes about 50 milliseconds.
 
-### hg38
-
-Everything is on GRCh38 (hg38). Studies reported on hg19 are lifted over when their Store is built, and the build stops if more than 1% of variants fail to lift. Positions you query are exact, so there is no search radius to set.
-
-### Variant IDs instead of positions
-
-Every variant has one ID, written `chr:pos:A1:A2` on hg38, and every effect size is given against `A1`, which is chosen to be the alphabetically first allele. Two datasets that share a variant share its ID automatically without needing an external reference, and their effects already point the same way, so you do not have to flip alleles when you combine them. You can still look variants up by rsID. Where one rsID matches more than one variant, you get all of them back and can choose.
-
-### Missing variants and LD proxies
-
-Before, when an instrument was missing from your outcome GWAS, TwoSampleMR looked for a proxy SNP in LD with it while you waited. Now that work happens once, when a Store is built. The genome-wide summary statistics for each study are imputed against a reference panel matched to its ancestry, and variants it did not report before now will have an estimated association. Imputed results are labelled as imputed, so you can keep them or leave them out. In one of our tests, all 100 BMI instruments were found in a coronary artery disease GWAS, 7 of them imputed. The accuracy of summary imputation is much better than using LD proxies.
-
-Clumping uses LD from the study's own ancestry. Fetching the LD needed to clump a quarter of a million hits takes one to two seconds. You can still ask for LD proxies if you want them.
-
 ### Faster queries
 
 Some measured times, on our server at the end of November 2026, before network time:
@@ -99,17 +122,19 @@ Some measured times, on our server at the end of November 2026, before network t
 | The ~1.2 million HapMap3 variants for one analysis | about 0.5 s |
 | A 1 Mb region across every analysis in a Store | about 2 s |
 
+Fetching the LD needed to clump a quarter of a million hits takes one to two seconds.
+
 ### Large SNP sets for LD score regression
 
-The HapMap3 variants used by LD score regression are indexed in every densely laid-out Store, so extracting them for an analysis takes about half a second (see the table above). You no longer have to download a whole file and filter it.
+The HapMap3 variants used by LD score regression are indexed in every densely laid-out Store, so extracting them for an analysis takes about half a second. You no longer have to download a whole file and filter it.
 
 ### Analyses on your own computer
 
 Whole GWAS Stores and LD Stores will be downloadable, one file per Store, each with a record of where it came from and the licences of its sources. Unpack one or more into a folder and point `opengwasr` (R) or `ogquery` (Python) at it, and the functions you use against the API run on your own machine instead. You can run a PheWAS across a whole Store, or extract genome-wide data for thousands of traits, without an allowance or a network connection.
 
-### Effect sizes on a known scale
+### Effect sizes you can compare
 
-Every effect size now says what scale it is on: per standard deviation for continuous traits, and log odds or log hazard ratio for binary and time-to-event outcomes. Where a study reported continuous effects in natural units, we convert them to per-SD using the trait's standard deviation, taken from the study or estimated from the data, and record which method we used. `opengwasr` can convert back to the original units. We also check each study's stated scale against its allele frequencies, which catches mislabelled studies.
+Because every effect size states its scale, you can combine studies without guessing their units. Where a study reported continuous effects in natural units, we convert them to per-SD using the trait's standard deviation, taken from the study or estimated from the data, and record which method we used. We also check each study's stated scale against its allele frequencies, which catches mislabelled studies.
 
 ### Ancestry worked out from the data
 
@@ -117,20 +142,19 @@ We no longer rely on the ancestry a study reports. Each analysis's allele freque
 
 ## Still under way
 
-Some of this work is not finished but it part of the roadmap:
+Some of this work is not finished but is part of the roadmap:
 
 - **Ontology mapping:** Traits are being mapped to ontology terms such as EFO. Studies from the GWAS Catalog come with them. For the rest, including the UK Biobank batch, mapping is in progress, and most analyses do not have a term yet.
 - **Licences:** Every analysis has a licence field that links to the provider's terms, but many of these are still empty. We are working through them source by source. This matters for downloads and commercial use, which depend on it.
 - **Binary traits in the UK Biobank batch:** Many of the `ukb-b` binary traits were analysed with linear models. They are labelled as such but have not been converted to log odds.
 - **LD score regression in TwoSampleMR:** The fast HapMap3 extract is in place, but TwoSampleMR's LD score functions move over to the new system later.
 - **Downloads:** The design is settled, and we will announce when downloads open.
-- **Old dataset IDs:** IDs from the current system, such as `ukb-b-19953`, are mapped to their new equivalents wherever possible.
 
 ## Trying the alpha
 
 From 14 December 2026, anyone can try the new system.
 
-1. Sign in with your existing OpenGWAS account and generate a new token for the new system at (coming soon).
+1. Sign in with your existing OpenGWAS account and generate a new token for the new system (we will add the link here before 14 December).
 2. Install the alpha release of TwoSampleMR:
 
    ```r
@@ -139,7 +163,7 @@ From 14 December 2026, anyone can try the new system.
 
 3. Run your usual analyses and tell us what breaks, what is slow and what looks wrong on [TwoSampleMR's GitHub issues](https://github.com/MRCIEU/TwoSampleMR/issues).
 
-The current system stays the default until 25 January, so the alpha will not change anything you do not ask it to. Things may change during testing.
+The current system stays the default until 25 January, so the alpha will not change anything you do not ask it to. Things may change during testing. The most useful thing you can do is run an existing pipeline on both systems and compare the results: it shows you the differences that matter to your work before the switch, and tells us which gaps to bridge.
 
 ## After 31 March 2027
 
