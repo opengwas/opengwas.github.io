@@ -19,9 +19,9 @@ This post sets out what will change for you first, then why we are doing it and 
 
 {{< og-timeline >}}
 
-## What will change for you
+## What will change for existing scripts
 
-If you use OpenGWAS through TwoSampleMR or ieugwasr, these are the changes you will notice. Some will stop old code from running, which is easy to spot. Others will change your results without any error, and those need more care.
+If you use OpenGWAS through TwoSampleMR or ieugwasr, these are likely **breaking changes**. Some will stop old code from running, which is easy to spot. Others will change your results without any error, and those need more care. In general, it must not be assumed that identical results will be obtained when running old scripts on the new system.
 
 ### Variants and positions
 
