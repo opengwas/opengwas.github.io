@@ -1,7 +1,7 @@
 +++
 author = "OpenGWAS"
 title = "A new OpenGWAS: what is changing, and when"
-date = "2026-11-30"
+date = "2026-11-27"
 description = "We are replacing the system behind OpenGWAS. The new one opens for testing on 14 December 2026, becomes the default on 25 January 2027, and the current system is retired on 31 March 2027. This post explains why, what is different, and what you need to do."
 tags = [
     "announcement",
